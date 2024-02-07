@@ -121,6 +121,48 @@ int help_print(Node* root, int raw, int curr) {
 	return help_print(root->_left, raw, curr + 1) + help_print(root->_right, raw, curr + 1);
 }
 
+Node* find_node_to_ins(Node* root, int key) {
+	if (key < root->_val) {
+		if(root->_left == nullptr)
+			return root;
+		return find_node_to_ins(root->_left, key);
+	}
+	if (key > root->_val) {
+		if(root->_right == nullptr)
+			return root;
+		return find_node_to_ins(root->_right, key);
+	}
+}
+
+Node* copy_root(Node* root, int len) {
+	int* buf = new int[len];
+	get_data(root, buf);
+	buf -= len;
+
+	qsort(buf, len, sizeof(int), compare);
+
+	size_t mid_ind = get_middle(len);
+
+	Node* copy_root = new Node(buf[mid_ind]);
+	left_branch(copy_root, buf, mid_ind);
+	right_branch(copy_root, buf + mid_ind + 1, len - mid_ind - 1);
+
+	return copy_root;
+}
+
+
+Node* find_node(Node* root, int key) {
+	if (root == nullptr)
+		return;
+	if (root->_val == key) {
+		return root;
+	}
+	if (key < root->_val)
+		find_node(root->_left, key);
+	if (key > root->_val)
+		find_node(root->_right, key);
+}
+
 class Set {
 private:
 	Node* _root;
@@ -173,6 +215,22 @@ public:
 		
 	}
 
+	int get_num_of_nodes(Node* root, int*& num) {
+		if (root == nullptr) {
+			return 0;
+		}
+		*num += 1;
+		get_num_of_nodes(root->_left, num);
+		get_num_of_nodes(root->_right, num);
+	}
+
+	Set(Node* root) {
+		int* nums = new int(0);
+		get_num_of_nodes(root, nums);
+		_len = *nums;
+		_root = copy_root(root, _len);
+	}
+
 	~Set() {
 		remove_nodes(_root);
 	}
@@ -211,6 +269,50 @@ public:
 			}
 			n++;
 		} while (help_print(_root, n - 1, 1) && std::cout << std::endl);
+	}
+
+	bool contains(int key) {
+		int* data = this->get_array();
+		for (int i = 0; i < _len; i++) {
+			if (key == data[i])
+				return true;
+		}
+		return false;
+	}
+
+	void operator=(const Set& s) {
+		this->_len = s._len;
+		Node* root = copy_root(s._root, _len);
+		this->_root = s._root;
+	}
+
+	bool insert(int key) {
+
+		if (this->contains(key)) {
+			return false;
+		}
+
+		Node* ins = find_node_to_ins(this->_root, key);
+		Node* new_node = new Node(key);
+		
+		if (key < ins->_val) {
+			ins->_left = new_node;
+		}
+		else {
+			ins->_right = new_node;
+		}
+
+		return true;
+	}
+
+	bool erase(int key) {
+		if (!this->contains(key)) {
+			return false;
+		}
+		Node* del = find_node(_root, key);
+		if (!(del->_left && del->_right)) {
+
+		}
 	}
 
 };

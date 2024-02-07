@@ -36,3 +36,48 @@ TEST(SetTests, PrintCheck) {
 	Set s(array, 12);
 	s.print();
 }
+
+TEST(SetTests, ContainsCheck) {
+	int* array = new int[12] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+	Set s(array, 12);
+	EXPECT_TRUE(s.contains(1));
+	EXPECT_TRUE(s.contains(12));
+	EXPECT_TRUE(s.contains(7));
+	EXPECT_FALSE(s.contains(0));
+	EXPECT_FALSE(s.contains(13));
+}
+
+TEST(SetTests, OperatorCheck) {
+	int* array = new int[12] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+	Set s(array, 12);
+	Set s2 = s;
+	int* data = s2.get_array();
+	for (int i = 0; i < s._len; i++) {
+		EXPECT_EQ(array[i], data[i]);
+	}
+}
+
+TEST(SetTests, InsertCheck) {
+	int* array = new int[11] {1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12};
+	Set s(array, 11);
+	s.print();
+	EXPECT_TRUE(s.insert(4));
+	s.print();
+}
+
+TEST(SetTests, InsertCheck2) {
+	int* array = new int[7] {2, 3 ,4, 9, 12, 3, -4};
+	Set s(array, 7);
+	s.print();
+	EXPECT_TRUE(s.insert(1));
+	s.print();
+}
+
+TEST(SetTests, InsertCheck3) {
+	int* array = new int[7] {2, 3, 4, 9, 12, 3, -4};
+	Set s(array, 7);
+	s.print();
+	EXPECT_FALSE(s.insert(-4));
+	EXPECT_FALSE(s.insert(9));
+	s.print();
+}
