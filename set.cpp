@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm> 
 #include <iostream>
+#include <vector>
 #define max(a,b) (((a) > (b)) ? (a) : (b))
 
 struct Node {
@@ -315,19 +316,23 @@ public:
 	}
 
 	void print() {
-		int printed = 0;
-		int n = 2;
-		int height = this->get_height();
-		for (int i = 1; i < height; i++) {
-			std::cout << " ";
-		}
-		std::cout << _root->_val << " " << std::endl;
-		do {
-			for (int i = n; i < height; i++) {
+		if (_root == nullptr)
+			std::cout << "";
+		else {
+			int printed = 0;
+			int n = 2;
+			int height = this->get_height();
+			for (int i = 1; i < height; i++) {
 				std::cout << " ";
 			}
-			n++;
-		} while (help_print(_root, n - 1, 1) && std::cout << std::endl);
+			std::cout << _root->_val << " " << std::endl;
+			do {
+				for (int i = n; i < height; i++) {
+					std::cout << " ";
+				}
+				n++;
+			} while (help_print(_root, n - 1, 1) && std::cout << std::endl);
+		}
 	}
 
 	bool contains(int key) {
@@ -374,8 +379,23 @@ public:
 
 		Node* del = find_node_and_parent(_root, key, parent);
 
+		if (parent == nullptr) {
+			if (del->_left && del->_right) {
+				del->_left->_right = del->_right;
+				_root = del->_left;
+			}
+			else if (del->_left) {
+				_root = del->_left;
+			}
+			else if(del->_right){
+				_root = del->_right;
+			}
+			else {
+				_root = nullptr;
+			}
+		}
 
-		if (del->_left && del->_right) {
+		else if (del->_left && del->_right) {
 
 			int* left_num = new int(0);
 			int* left_data = new int[get_num_of_nodes(del->_left, left_num)];
@@ -464,5 +484,23 @@ public:
 
 };
 
-
+std::vector<int> get_copies(std::vector<int> data) {
+	size_t len = data.size();
+	Set s(data.data(), len);
+	int* copies = new int[len - s._len];
+	int j = 0;
+	for (int i = 0; i < len; i++) {
+		if (s.contains(data[i])) {
+			s.erase(data[i]);
+		}
+		else {
+			copies[j] = data[i];
+			j++;
+		}
+	}
+	std::vector<int>ans;
+	for (int i = 0; i < j; i++)
+		ans.push_back(copies[i]);
+	return ans;
+}
 

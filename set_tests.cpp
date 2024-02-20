@@ -105,3 +105,13 @@ TEST(SetTests, EraseCheck3) {
 	EXPECT_TRUE(s.erase(2));
 	s.print();
 }
+
+TEST(SetTests, GetCopiesCheck) {
+	std::vector<int>a = std::vector<int>();
+	int* array = new int[6] {1, 2, 3, 3, 4, 1};
+	for (int i = 0; i < 6; i++)
+		a.push_back(array[i]);
+	std::vector<int> b = get_copies(a);
+	for (int i = 0; i < b.size(); i++)
+		std::cout << b[i] << " ";
+}
