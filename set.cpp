@@ -141,26 +141,68 @@ Node* copy_root(Node* root, int len) {
 
 	qsort(buf, len, sizeof(int), compare);
 
-	size_t mid_ind = get_middle(len);
+	Node* c_root = nullptr;
 
-	Node* copy_root = new Node(buf[mid_ind]);
-	left_branch(copy_root, buf, mid_ind);
-	right_branch(copy_root, buf + mid_ind + 1, len - mid_ind - 1);
+	if (len == 1) {
+		c_root = new Node(buf[0]);
+	}
+	else if (len == 2) {
+		c_root = new Node(buf[0]);
+		if (buf[1] < buf[0]) {
+			c_root->_left = new Node(buf[1]);
+		}
+		else {
+			c_root->_right = new Node(buf[1]);
+		}
+	}
+	else {
+		size_t mid_ind = get_middle(len);
 
-	return copy_root;
+		c_root = new Node(buf[mid_ind]);
+		left_branch(c_root, buf, mid_ind);
+		right_branch(c_root, buf + mid_ind + 1, len - mid_ind - 1);
+
+	}
+	return c_root;
 }
 
+Node* find_node_parent(Node* root, int key) {
+	if (root->_val == key) {
+		return nullptr;
+	}
+	if (root->_left && key < root->_val) {
+		if(root->_left->_val == key)
+			return root;
+		if (key < root->_left->_val)
+			find_node_parent(root->_left, key);
+		else if (root->_left) {
+			if (key > root->_right->_val) {
+				find_node_parent(root->_right, key);
+			}
+		}
+	}
+	else if (root->_right && key > root->_val) {
+		if (root->_right->_val == key)
+			return root;
+		if (key > root->_right->_val)
+			find_node_parent(root->_right, key);
+	}
+}
 
-Node* find_node(Node* root, int key) {
-	if (root == nullptr)
-		return;
+Node* find_node_and_parent(Node* root, int key, Node*& parent) {
+	if (root == nullptr) {
+		return nullptr;
+	}
 	if (root->_val == key) {
 		return root;
 	}
-	if (key < root->_val)
-		find_node(root->_left, key);
-	if (key > root->_val)
-		find_node(root->_right, key);
+	parent = root;
+	if (key < root->_val) {
+		find_node_and_parent(root->_left, key, parent);
+	}
+	else {
+		find_node_and_parent(root->_right, key, parent);
+	}
 }
 
 class Set {
@@ -170,6 +212,7 @@ public:
 	size_t _len;
 	Set() : _root(nullptr), _len(0) {};
 	Set(const int* data, size_t len) {
+
 		int* buf = new int[len];
 		for (int i = 0; i < len; i++) {
 			buf[i] = data[i];
@@ -185,15 +228,31 @@ public:
 		}
 
 		delete[] buf;
-		
-		size_t mid_ind = get_middle(len);
 
-		Node* root = new Node(set[mid_ind]);
-		left_branch(root, set, mid_ind);
-		right_branch(root, set + mid_ind + 1, len - mid_ind - 1);
+		if (len == 1) {
+			_root = new Node(set[0]);
+			_len = 1;
+		}
+		else if (len == 2) {
+			_root = new Node(set[0]);
+			if (set[1] < set[0]) {
+				_root->_left = new Node(set[1]);
+			}
+			else {
+				_root->_right = new Node(set[1]);
+			}
+			_len = 2;
+		}
+		else {
+			size_t mid_ind = get_middle(len);
 
-		_len = len;
-		_root = root;
+			Node* root = new Node(set[mid_ind]);
+			left_branch(root, set, mid_ind);
+			right_branch(root, set + mid_ind + 1, len - mid_ind - 1);
+
+			_len = len;
+			_root = root;
+		}
 	}
 
 	Set(const Set& s) {
@@ -309,10 +368,98 @@ public:
 		if (!this->contains(key)) {
 			return false;
 		}
-		Node* del = find_node(_root, key);
-		if (!(del->_left && del->_right)) {
+		
+		Node* parent = nullptr;
+		
 
+		Node* del = find_node_and_parent(_root, key, parent);
+
+
+		if (del->_left && del->_right) {
+
+			int* left_num = new int(0);
+			int* left_data = new int[get_num_of_nodes(del->_left, left_num)];
+			get_data(del->_left, left_data);
+			left_data -= *left_num;
+			
+
+			int* right_num = new int(0);
+			int* right_data = new int[get_num_of_nodes(del->_left, right_num) + *left_num];
+			get_data(del->_right, right_data);
+			right_data -= *right_num;
+
+			for (int i = 0; i < *left_num; i++) {
+				right_data[*right_num + i] = left_data[i];
+			}
+			int new_len = *left_num + *right_num;
+
+			Set s(right_data, new_len);
+			Node* new_root = copy_root(s._root, s._len);
+
+			if (parent->_left == del) {
+				parent->_left = new_root;
+			}
+			else {
+				parent->_right = new_root;
+			}
+
+			remove_nodes(del);
 		}
+
+		else if (del->_left || del->_right) 
+		{
+			if (parent->_left)
+			{
+				if (parent->_left->_val == key)
+				{
+					if (del->_left)
+					{
+						parent->_left = del->_left;
+					}
+					else
+					{
+						parent->_left = del->_right;
+					}
+				}
+				else
+				{
+
+					if (del->_left)
+					{
+						parent->_right = del->_left;
+					}
+					else
+					{
+						parent->_right = del->_right;
+					}
+				}
+			}
+			else {
+				if (del->_left)
+				{
+					parent->_right = del->_left;
+				}
+				else
+				{
+					parent->_right = del->_right;
+				}
+			}
+		}
+
+		else if (!(del->_left && del->_right)) {
+			if (parent->_left == del)
+			{
+				delete parent->_left;
+				parent->_left = nullptr;
+			}
+			else
+			{
+				delete parent->_right;
+				parent->_right = nullptr;
+			}
+		}
+		_len -= 1;
+		return true;
 	}
 
 };

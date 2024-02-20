@@ -81,3 +81,27 @@ TEST(SetTests, InsertCheck3) {
 	EXPECT_FALSE(s.insert(9));
 	s.print();
 }
+
+TEST(SetTests, EraseCheck) {
+	int* array = new int[5] {2, 3, 4, 5};
+	Set s(array, 4);
+	s.print();
+	EXPECT_TRUE(s.erase(2));
+	s.print();
+}
+
+TEST(SetTests, EraseCheck2) {
+	int* array = new int[6] {2, 3, 4, 5, 6, 7};
+	Set s(array, 6);
+	s.print();
+	EXPECT_TRUE(s.erase(6));
+	s.print();
+}
+
+TEST(SetTests, EraseCheck3) {
+	int* array = new int[12] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+	Set s(array, 12);
+	s.print();
+	EXPECT_TRUE(s.erase(2));
+	s.print();
+}
