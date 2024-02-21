@@ -29,6 +29,8 @@ FetchContent_MakeAvailable(googletest)
 
 # Объявляем тесты
 add_executable(set_tests "set_tests.cpp")
+add_executable(time_count "vector_vs_set.cpp")
 target_link_libraries(set_tests set GTest::gtest_main)
+target_link_libraries(time_count set)
 
 

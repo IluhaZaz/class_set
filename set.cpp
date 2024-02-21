@@ -335,13 +335,16 @@ public:
 		}
 	}
 
+	bool help_contains(Node* root, int key) {
+		if (root == nullptr)
+			return false;
+		if (root->_val == key)
+			return true;
+		return help_contains(root->_left, key) || help_contains(root->_right, key);
+	}
+
 	bool contains(int key) {
-		int* data = this->get_array();
-		for (int i = 0; i < _len; i++) {
-			if (key == data[i])
-				return true;
-		}
-		return false;
+		return help_contains(_root, key);
 	}
 
 	void operator=(const Set& s) {
@@ -351,6 +354,11 @@ public:
 	}
 
 	bool insert(int key) {
+		if (_root == nullptr) {
+			_root = new Node(key);
+			_len++;
+			return true;
+		}
 
 		if (this->contains(key)) {
 			return false;
@@ -365,7 +373,7 @@ public:
 		else {
 			ins->_right = new_node;
 		}
-
+		_len++;
 		return true;
 	}
 
@@ -377,26 +385,39 @@ public:
 		Node* parent = nullptr;
 		
 
-		Node* del = find_node_and_parent(_root, key, parent);
-
+		Node* del = find_node_and_parent(_root, key, parent); //находит удаляемый элемент и его родителя
+		//удаление корневого элемента
 		if (parent == nullptr) {
+			//если есть оба поддерева
 			if (del->_left && del->_right) {
-				del->_left->_right = del->_right;
+				//прикрепляем правое поддерево к левому при помощи insert
+				Node* ins = del->_left->_right;
+				Node* to_ins = find_node_to_ins(del->_right, ins->_val);
+				if (ins->_val < to_ins->_val) {
+					to_ins->_left = ins;
+				}
+				else {
+					to_ins->_right = ins;
+				}
 				_root = del->_left;
 			}
+			//случаи когда имеется только 1 поддерево
 			else if (del->_left) {
 				_root = del->_left;
 			}
 			else if(del->_right){
 				_root = del->_right;
 			}
+			//если корень - последний элемент
 			else {
 				_root = nullptr;
 			}
 		}
+		//удаляемый элемент не корневой
 
+		//есть оба поддерева
 		else if (del->_left && del->_right) {
-
+			//слияние значений обоих поддеревьев
 			int* left_num = new int(0);
 			int* left_data = new int[get_num_of_nodes(del->_left, left_num)];
 			get_data(del->_left, left_data);
@@ -412,9 +433,9 @@ public:
 				right_data[*right_num + i] = left_data[i];
 			}
 			int new_len = *left_num + *right_num;
-
+			//из объединенных значений перестраиваем дерево
 			Set s(right_data, new_len);
-			Node* new_root = copy_root(s._root, s._len);
+			Node* new_root = copy_root(s._root, s._len);//берем его глубокую копию
 
 			if (parent->_left == del) {
 				parent->_left = new_root;
@@ -425,18 +446,18 @@ public:
 
 			remove_nodes(del);
 		}
-
+		//если есть только 1 из поддеревьев
 		else if (del->_left || del->_right) 
 		{
-			if (parent->_left)
+			if (parent->_left)//если удаляемый элемент слева от поддерева
 			{
 				if (parent->_left->_val == key)
 				{
-					if (del->_left)
+					if (del->_left)//если у удаляемого элемента только левое поддерево
 					{
 						parent->_left = del->_left;
 					}
-					else
+					else //если у удаляемого элемента только правое поддерево
 					{
 						parent->_left = del->_right;
 					}
@@ -454,7 +475,7 @@ public:
 					}
 				}
 			}
-			else {
+			else {//если удаляемый элемент справа от поддерева
 				if (del->_left)
 				{
 					parent->_right = del->_left;
@@ -465,7 +486,7 @@ public:
 				}
 			}
 		}
-
+		//если у удаляемого элемента ни одного поддерева
 		else if (!(del->_left && del->_right)) {
 			if (parent->_left == del)
 			{
