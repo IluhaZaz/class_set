@@ -115,3 +115,31 @@ TEST(SetTests, GetCopiesCheck) {
 	for (int i = 0; i < b.size(); i++)
 		std::cout << b[i] << " ";
 }
+
+TEST(SetTests, Extra) {
+	int* array = new int[12] {1, 2, 3, 4,6,7,8,9,10,11,12};
+	Set s(array, 12);
+	s.print();
+
+	
+	std::cout << (s.insert(-4)) << std::endl;
+	std::cout << (s.insert(9)) << std::endl;
+	s.print();
+
+	std::cout << (s.erase(2)) << std::endl;
+	s.print();
+	std::cout << (s.erase(6)) << std::endl;
+	s.print();
+	std::cout << (s.erase(3)) << std::endl;
+	s.print();
+	std::cout << (s.erase(4)) << std::endl;
+	s.print();
+	std::cout << (s.erase(5)) << std::endl;
+	s.print();
+	std::cout << (s.erase(9)) << std::endl;
+	s.print();
+	std::cout << (s.erase(10)) << std::endl;
+	s.print();
+	std::cout << (s.erase(11)) << std::endl;
+	s.print();
+}

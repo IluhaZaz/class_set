@@ -15,7 +15,57 @@ struct Node {
 
 int compare(const void* x1, const void* x2)
 {
-	return (*(int*)x1 - *(int*)x2);             
+	return (*(int*)x1 - *(int*)x2);
+}
+
+bool help_erase(Node*& node, int value) {
+	if (node == nullptr) {
+		return false;
+	}
+	if (value < node->_val) {
+		return help_erase(node->_left, value);
+	}
+	else if (value > node->_val) {
+		return help_erase(node->_right, value);
+	}
+	else {
+		if (node->_left == nullptr) {
+			Node* temp = node->_right;
+			delete node;
+			node = temp;
+		}
+		else if (node->_right == nullptr) {
+			Node* temp = node->_left;
+			delete node;
+			node = temp;
+		}
+		else {
+			Node* temp = node->_right;
+			while (temp->_left) {
+				temp = temp->_left;
+			}
+			node->_val = temp->_val;
+			help_erase(node->_right, temp->_val);
+		}
+		return true;
+	}
+}
+	
+
+bool help_insert(int key, Node*& root) {
+	if (root == nullptr) {
+		root = new Node(key);
+		return true;
+	}
+	if (root->_val == key) {
+		return false;
+	}
+	if (key < root->_val) {
+		help_insert(key, root->_left);
+	}
+	else {
+		help_insert(key, root->_right);
+	}
 }
 
 size_t remove_duplicates(int* data, size_t len) {
@@ -32,45 +82,9 @@ size_t remove_duplicates(int* data, size_t len) {
 size_t get_middle(size_t len) {
 	if (len == 1)
 		return 1;
-	return (int)(len / 2) ;
+	return (int)(len / 2);
 }
 
-void right_branch(Node* root, int* data, size_t len);
-
-void left_branch(Node* root, int* data, size_t len) {
-	if (len == 1) {
-		root->_left = new Node(data[0]);
-	}
-	else if (len == 2) {
-		root->_left = new Node(data[1]);
-		root->_left->_left = new Node(data[0]);
-	}
-	else {
-		size_t mid_ind = get_middle(len);
-		Node* new_root = new Node(data[mid_ind]);
-		root->_left = new_root;
-		left_branch(new_root, data, mid_ind);
-		right_branch(new_root, data + mid_ind + 1, len - mid_ind - 1);
-	}
-
-}
-
-void right_branch(Node* root, int* data, size_t len) {
-	if (len == 1) {
-		root->_right = new Node(data[0]);
-	}
-	else if (len == 2) {
-		root->_right = new Node(data[0]);
-		root->_right->_right = new Node(data[1]);
-	}
-	else {
-		size_t mid_ind = get_middle(len);
-		Node* new_root = new Node(data[mid_ind]);
-		root->_right = new_root;
-		left_branch(new_root, data, mid_ind);
-		right_branch(new_root, data + mid_ind + 1, len - mid_ind - 1);
-	}
-}
 
 void get_data(const Node* root, int*& buf) {
 	if (root == nullptr) {
@@ -92,79 +106,24 @@ void remove_nodes(Node* root) {
 }
 
 
-int help_print(Node* root, int raw, int curr) {
+void help_print(Node* root) {
 
-	if (root == nullptr) {
-		return 0;
-	}
-	if (curr > raw) {
-		return 0;
-	}
-	if (curr + 1 == raw) {
-		if (root->_left)
-		{
-			std::cout << root->_left->_val << " ";
-		}
-		else
-		{
-			std::cout << "x ";
-		}
-		if (root->_right)
-		{
-			std::cout << root->_right->_val << " ";
-		}
-		else
-		{
-			std::cout << "x ";
-		}
-		return 1;
-	}
-	return help_print(root->_left, raw, curr + 1) + help_print(root->_right, raw, curr + 1);
-}
-
-Node* find_node_to_ins(Node* root, int key) {
-	if (key < root->_val) {
-		if(root->_left == nullptr)
-			return root;
-		return find_node_to_ins(root->_left, key);
-	}
-	if (key > root->_val) {
-		if(root->_right == nullptr)
-			return root;
-		return find_node_to_ins(root->_right, key);
+	if (root != nullptr) {
+		help_print(root->_left);
+		std::cout << root->_val << " ";
+		help_print(root->_right);
 	}
 }
 
-Node* copy_root(Node* root, int len) {
-	int* buf = new int[len];
-	get_data(root, buf);
-	buf -= len;
 
-	qsort(buf, len, sizeof(int), compare);
-
-	Node* c_root = nullptr;
-
-	if (len == 1) {
-		c_root = new Node(buf[0]);
+Node* copy_root(Node* root) {
+	if (root) {
+		Node* new_node = new Node(root->_val);
+		new_node->_left = copy_root(root->_left);
+		new_node->_right = copy_root(root->_right);
+		return new_node;
 	}
-	else if (len == 2) {
-		c_root = new Node(buf[0]);
-		if (buf[1] < buf[0]) {
-			c_root->_left = new Node(buf[1]);
-		}
-		else {
-			c_root->_right = new Node(buf[1]);
-		}
-	}
-	else {
-		size_t mid_ind = get_middle(len);
-
-		c_root = new Node(buf[mid_ind]);
-		left_branch(c_root, buf, mid_ind);
-		right_branch(c_root, buf + mid_ind + 1, len - mid_ind - 1);
-
-	}
-	return c_root;
+	return nullptr;
 }
 
 Node* find_node_parent(Node* root, int key) {
@@ -172,7 +131,7 @@ Node* find_node_parent(Node* root, int key) {
 		return nullptr;
 	}
 	if (root->_left && key < root->_val) {
-		if(root->_left->_val == key)
+		if (root->_left->_val == key)
 			return root;
 		if (key < root->_left->_val)
 			find_node_parent(root->_left, key);
@@ -213,66 +172,29 @@ public:
 	size_t _len;
 	Set() : _root(nullptr), _len(0) {};
 	Set(const int* data, size_t len) {
+		_root = nullptr;
 
-		int* buf = new int[len];
+		int l = 0;
+
 		for (int i = 0; i < len; i++) {
-			buf[i] = data[i];
+			l += (int)this->insert(data[i]);
 		}
-		qsort(buf, len, sizeof(int), compare);
-		
-		len = remove_duplicates(buf, len);
-		
-
-		int* set = new int[len];
-		for (int i = 0; i < len; i++) {
-			set[i] = buf[i];
-		}
-
-		delete[] buf;
-
-		if (len == 1) {
-			_root = new Node(set[0]);
-			_len = 1;
-		}
-		else if (len == 2) {
-			_root = new Node(set[0]);
-			if (set[1] < set[0]) {
-				_root->_left = new Node(set[1]);
-			}
-			else {
-				_root->_right = new Node(set[1]);
-			}
-			_len = 2;
-		}
-		else {
-			size_t mid_ind = get_middle(len);
-
-			Node* root = new Node(set[mid_ind]);
-			left_branch(root, set, mid_ind);
-			right_branch(root, set + mid_ind + 1, len - mid_ind - 1);
-
-			_len = len;
-			_root = root;
-		}
+		_len = l;
 	}
 
 	Set(const Set& s) {
-		size_t len = s._len;
-		int* buf = new int[len];
-		get_data(s._root, buf);
-		buf -= len;
+		_root = copy_root(s._root);
+		_len = s._len;
+	}
 
-		qsort(buf, len, sizeof(int), compare);
-
-		size_t mid_ind = get_middle(len);
-
-		Node* root = new Node(buf[mid_ind]);
-		left_branch(root, buf, mid_ind);
-		right_branch(root, buf + mid_ind + 1, len - mid_ind - 1);
-
-		_len = len;
-		_root = root;
-		
+	void get_data(const Node* root, int*& buf) {
+		if (root == nullptr) {
+			return;
+		}
+		*buf = root->_val;
+		buf++;
+		get_data(root->_left, buf);
+		get_data(root->_right, buf);
 	}
 
 	int get_num_of_nodes(Node* root, int*& num) {
@@ -288,19 +210,11 @@ public:
 		int* nums = new int(0);
 		get_num_of_nodes(root, nums);
 		_len = *nums;
-		_root = copy_root(root, _len);
+		_root = copy_root(root);
 	}
 
 	~Set() {
 		remove_nodes(_root);
-	}
-
-	int* get_array() {
-		int* buf = new int[_len];
-		get_data(_root, buf);
-		buf -= _len;
-		qsort(buf, _len, sizeof(int), compare);
-		return buf;
 	}
 
 	int help_get_height(Node* root, int lvl) {
@@ -316,23 +230,9 @@ public:
 	}
 
 	void print() {
-		if (_root == nullptr)
-			std::cout << "";
-		else {
-			int printed = 0;
-			int n = 2;
-			int height = this->get_height();
-			for (int i = 1; i < height; i++) {
-				std::cout << " ";
-			}
-			std::cout << _root->_val << " " << std::endl;
-			do {
-				for (int i = n; i < height; i++) {
-					std::cout << " ";
-				}
-				n++;
-			} while (help_print(_root, n - 1, 1) && std::cout << std::endl);
-		}
+		std::cout << _root->_val << " ";
+		help_print(_root->_left);
+		help_print(_root->_right);
 	}
 
 	bool help_contains(Node* root, int key) {
@@ -349,160 +249,25 @@ public:
 
 	void operator=(const Set& s) {
 		this->_len = s._len;
-		Node* root = copy_root(s._root, _len);
+		Node* root = copy_root(s._root);
 		this->_root = s._root;
 	}
 
 	bool insert(int key) {
-		if (_root == nullptr) {
-			_root = new Node(key);
-			_len++;
-			return true;
-		}
+		return help_insert(key, _root);
+	}
 
-		if (this->contains(key)) {
-			return false;
-		}
-
-		Node* ins = find_node_to_ins(this->_root, key);
-		Node* new_node = new Node(key);
-		
-		if (key < ins->_val) {
-			ins->_left = new_node;
-		}
-		else {
-			ins->_right = new_node;
-		}
-		_len++;
-		return true;
+	int* get_array() {
+		int* buf = new int[_len];
+		get_data(_root, buf);
+		buf -= _len;
+		qsort(buf, _len, sizeof(int), compare);
+		return buf;
 	}
 
 	bool erase(int key) {
-		if (!this->contains(key)) {
-			return false;
-		}
-		
-		Node* parent = nullptr;
-		
-
-		Node* del = find_node_and_parent(_root, key, parent); //находит удаляемый элемент и его родителя
-		//удаление корневого элемента
-		if (parent == nullptr) {
-			//если есть оба поддерева
-			if (del->_left && del->_right) {
-				//прикрепляем правое поддерево к левому при помощи insert
-				Node* ins = del->_left->_right;
-				Node* to_ins = find_node_to_ins(del->_right, ins->_val);
-				if (ins->_val < to_ins->_val) {
-					to_ins->_left = ins;
-				}
-				else {
-					to_ins->_right = ins;
-				}
-				_root = del->_left;
-			}
-			//случаи когда имеется только 1 поддерево
-			else if (del->_left) {
-				_root = del->_left;
-			}
-			else if(del->_right){
-				_root = del->_right;
-			}
-			//если корень - последний элемент
-			else {
-				_root = nullptr;
-			}
-		}
-		//удаляемый элемент не корневой
-
-		//есть оба поддерева
-		else if (del->_left && del->_right) {
-			//слияние значений обоих поддеревьев
-			int* left_num = new int(0);
-			int* left_data = new int[get_num_of_nodes(del->_left, left_num)];
-			get_data(del->_left, left_data);
-			left_data -= *left_num;
-			
-
-			int* right_num = new int(0);
-			int* right_data = new int[get_num_of_nodes(del->_left, right_num) + *left_num];
-			get_data(del->_right, right_data);
-			right_data -= *right_num;
-
-			for (int i = 0; i < *left_num; i++) {
-				right_data[*right_num + i] = left_data[i];
-			}
-			int new_len = *left_num + *right_num;
-			//из объединенных значений перестраиваем дерево
-			Set s(right_data, new_len);
-			Node* new_root = copy_root(s._root, s._len);//берем его глубокую копию
-
-			if (parent->_left == del) {
-				parent->_left = new_root;
-			}
-			else {
-				parent->_right = new_root;
-			}
-
-			remove_nodes(del);
-		}
-		//если есть только 1 из поддеревьев
-		else if (del->_left || del->_right) 
-		{
-			if (parent->_left)//если удаляемый элемент слева от поддерева
-			{
-				if (parent->_left->_val == key)
-				{
-					if (del->_left)//если у удаляемого элемента только левое поддерево
-					{
-						parent->_left = del->_left;
-					}
-					else //если у удаляемого элемента только правое поддерево
-					{
-						parent->_left = del->_right;
-					}
-				}
-				else
-				{
-
-					if (del->_left)
-					{
-						parent->_right = del->_left;
-					}
-					else
-					{
-						parent->_right = del->_right;
-					}
-				}
-			}
-			else {//если удаляемый элемент справа от поддерева
-				if (del->_left)
-				{
-					parent->_right = del->_left;
-				}
-				else
-				{
-					parent->_right = del->_right;
-				}
-			}
-		}
-		//если у удаляемого элемента ни одного поддерева
-		else if (!(del->_left && del->_right)) {
-			if (parent->_left == del)
-			{
-				delete parent->_left;
-				parent->_left = nullptr;
-			}
-			else
-			{
-				delete parent->_right;
-				parent->_right = nullptr;
-			}
-		}
-		_len -= 1;
-		return true;
+		return help_erase(_root, key);
 	}
-
 };
 
 std::vector<int> get_copies(std::vector<int> data) {
