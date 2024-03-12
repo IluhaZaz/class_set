@@ -217,17 +217,6 @@ public:
 		remove_nodes(_root);
 	}
 
-	int help_get_height(Node* root, int lvl) {
-		if (root == nullptr) {
-			return lvl - 1;
-		}
-		return max(help_get_height(root->_left, lvl + 1), help_get_height(root->_right, lvl + 1));
-
-	}
-
-	int get_height() {
-		return help_get_height(_root, 1);
-	}
 
 	void print() {
 		std::cout << _root->_val << " ";
